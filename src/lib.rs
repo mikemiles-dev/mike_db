@@ -1,5 +1,5 @@
 pub mod dataspace;
+pub mod dbms;
 pub mod fields;
-pub mod globals;
 pub mod rows;
 pub mod tables;
