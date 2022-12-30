@@ -1,4 +1,4 @@
-use crate::dataspace::DataSpace;
+use crate::globals::Tables;
 use crate::rows::Row;
 
 pub struct Table {
@@ -6,15 +6,23 @@ pub struct Table {
     rows: Vec<Row>,
 }
 
+pub enum TableError {
+    TableAlreadyExists,
+}
+
 impl Table {
-    fn can_table_name_be_used(table_name: String, dataspace_name: String) -> bool {
-        false
+    async fn table_name_available(table_name: String, dataspace_name: String) -> bool {
+        !Tables.read().await.contains_key(&table_name)
     }
 
-    fn new(table_name: String, dataspace_name: String) -> Table {
-        Table {
-            name: table_name,
-            rows: vec![],
+    async fn new(table_name: String, dataspace_name: String) -> Result<Table, TableError> {
+        if Self::table_name_available(table_name.clone(), dataspace_name).await {
+            Err(TableError::TableAlreadyExists)
+        } else {
+            Ok(Table {
+                name: table_name,
+                rows: vec![],
+            })
         }
     }
 }
