@@ -1,5 +1,5 @@
-use crate::rows::Row;
 use crate::dataspace::DataSpace;
+use crate::rows::Row;
 
 pub struct Table {
     name: String,
@@ -12,7 +12,7 @@ impl Table {
     }
 
     fn new(table_name: String, dataspace_name: String) -> Table {
-        Table { 
+        Table {
             name: table_name,
             rows: vec![],
         }
@@ -20,7 +20,4 @@ impl Table {
 }
 
 #[cfg(test)]
-mod tests {
-
-
-}
+mod tests {}

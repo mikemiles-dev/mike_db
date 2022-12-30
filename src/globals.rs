@@ -1,9 +1,9 @@
+use lazy_static::*;
 use std::collections::HashMap;
 use tokio::sync::RwLock;
-use lazy_static::*;
 
-use crate::tables::Table;
 use crate::dataspace::DataSpace;
+use crate::tables::Table;
 
 lazy_static! {
     pub static ref dataspace_names: RwLock<Vec<String>> = RwLock::new(Vec::new());
