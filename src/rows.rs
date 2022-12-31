@@ -4,8 +4,8 @@ use crate::fields::Field;
 
 #[derive(Debug)]
 pub struct Row {
-    id: String,
-    fields: Vec<Field>,
+    pub id: String,
+    pub fields: Vec<Field>,
 }
 
 impl Row {

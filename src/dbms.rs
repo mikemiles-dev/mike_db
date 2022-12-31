@@ -17,8 +17,7 @@ pub struct DBMS {
 impl DBMS {
     pub fn new() -> DBMS {
         let mut dbms = DBMS {
-            data_directory: env::var("DATA_DIRECTORY")
-                .unwrap_or_else(|_| "data".to_string()),
+            data_directory: env::var("DATA_DIRECTORY").unwrap_or_else(|_| "data".to_string()),
             dataspaces: HashMap::new(),
         };
         dbms.load_dataspaces();
@@ -73,11 +72,23 @@ impl DBMS {
 
 #[cfg(test)]
 mod tests {
-    use crate::fields::Field;
+    use crate::dataspace::{self, DataSpace};
+    use crate::dbms::DBMS;
+    use crate::fields::{Field, FieldType};
     use crate::rows::Row;
     use crate::tables::Table;
     use std::env;
 
     #[test]
-    fn it_can_write_dbms_to_disk() {}
+    fn it_can_write_dbms_to_disk() {
+        let field1 = Field::new(FieldType::String, "A String".as_bytes().to_vec());
+        let field2 = Field::new(FieldType::String, "Another String".as_bytes().to_vec());
+        let row = Row::new(vec![field1, field2]);
+        let mut table = Table::new(vec![FieldType::String, FieldType::String]);
+        let result = table.insert(vec![row]);
+        println!("{:?}", result);
+        println!("{:?}", table);
+        assert!(false);
+        //let dataspace = DataSpace::new
+    }
 }
