@@ -83,12 +83,15 @@ mod tests {
     fn it_can_write_dbms_to_disk() {
         let field1 = Field::new(FieldType::String, "A String".as_bytes().to_vec());
         let field2 = Field::new(FieldType::String, "Another String".as_bytes().to_vec());
-        let row = Row::new(vec![field1, field2]);
         let mut table = Table::new(vec![FieldType::String, FieldType::String]);
-        let result = table.insert(vec![row]);
-        println!("{:?}", result);
-        println!("{:?}", table);
-        assert!(false);
-        //let dataspace = DataSpace::new
+        let inserted_row = table.insert(vec![field1.data, field2.data]).unwrap();
+        assert_eq!(
+            format!("{}", inserted_row.fields.first().unwrap()),
+            "A String".to_string()
+        );
+        assert_eq!(
+            format!("{}", inserted_row.fields.last().unwrap()),
+            "Another String".to_string()
+        );
     }
 }

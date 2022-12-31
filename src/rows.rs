@@ -1,8 +1,9 @@
+use std::fmt;
 use uuid::Uuid;
 
 use crate::fields::Field;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Row {
     pub id: String,
     pub fields: Vec<Field>,
@@ -14,6 +15,17 @@ impl Row {
             id: Uuid::new_v4().to_string(),
             fields: fields,
         }
+    }
+}
+
+impl fmt::Display for Row {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let fields = self
+            .fields
+            .iter()
+            .map(|f| format!("{}", f))
+            .collect::<Vec<String>>();
+        write!(f, "({}: {:?})", self.id, fields)
     }
 }
 
