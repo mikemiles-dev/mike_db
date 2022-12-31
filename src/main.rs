@@ -1,3 +1,5 @@
+use mike_db::dbms::DBMS;
+
 fn main() {
-    println!("Hello, world!");
+    let dbms = DBMS::new();
 }

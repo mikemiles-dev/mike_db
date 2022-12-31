@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
 use log::error;
 
 use crate::dataspace::DataSpace;
 
-struct DBMS {
+pub struct DBMS {
     data_directory: String,
     dataspaces: HashMap<String, DataSpace>,
 }
@@ -24,6 +25,7 @@ impl DBMS {
     fn info_file_path(&self) -> PathBuf {
         let mut path = PathBuf::new();
         path.push(self.data_directory.clone());
+        path.push("data");
         path.push("info");
         path.set_extension("mike_db");
         path
@@ -47,7 +49,21 @@ impl DBMS {
         }
     }
 
-    pub fn load_dataspaces(&mut self) {}
+    fn parse_info_file(&mut self, file: &File) {
+        let reader = BufReader::new(file);
+        let mut dataspaces = vec![];
+        for line in reader.lines() {
+            if let Ok(dataspace) = line {
+                dataspaces.push(dataspace);
+            }
+        }
+        println!("{:?}", dataspaces);
+    }
+
+    pub fn load_dataspaces(&mut self) {
+        let info_file = self.load_info_file();
+        self.parse_info_file(&info_file);
+    }
 
     pub fn save_dataspaces() {}
 }
