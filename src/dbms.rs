@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
@@ -7,6 +8,7 @@ use log::error;
 
 use crate::dataspace::DataSpace;
 
+#[derive(Default)]
 pub struct DBMS {
     data_directory: String,
     dataspaces: HashMap<String, DataSpace>,
@@ -15,7 +17,8 @@ pub struct DBMS {
 impl DBMS {
     pub fn new() -> DBMS {
         let mut dbms = DBMS {
-            data_directory: env!("CARGO_MANIFEST_DIR").to_string(),
+            data_directory: env::var("DATA_DIRECTORY")
+                .unwrap_or_else(|_| "data".to_string()),
             dataspaces: HashMap::new(),
         };
         dbms.load_dataspaces();
@@ -49,21 +52,32 @@ impl DBMS {
         }
     }
 
-    fn parse_info_file(&mut self, file: &File) {
+    fn get_dataspaces_to_load(&mut self, file: &File) -> Vec<String> {
         let reader = BufReader::new(file);
         let mut dataspaces = vec![];
-        for line in reader.lines() {
-            if let Ok(dataspace) = line {
-                dataspaces.push(dataspace);
-            }
+        for line in reader.lines().flatten() {
+            dataspaces.push(line);
         }
-        println!("{:?}", dataspaces);
+        dataspaces
     }
+
+    fn load_dataspaces_from_disk(&mut self, dataspaces: Vec<String>) {}
 
     pub fn load_dataspaces(&mut self) {
         let info_file = self.load_info_file();
-        self.parse_info_file(&info_file);
+        let dataspaces_to_load = self.get_dataspaces_to_load(&info_file);
     }
 
     pub fn save_dataspaces() {}
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fields::Field;
+    use crate::rows::Row;
+    use crate::tables::Table;
+    use std::env;
+
+    #[test]
+    fn it_can_write_dbms_to_disk() {}
 }
