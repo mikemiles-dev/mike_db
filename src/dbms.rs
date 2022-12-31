@@ -7,11 +7,18 @@ use std::path::PathBuf;
 use log::error;
 
 use crate::dataspace::DataSpace;
+use crate::tables::TableError;
 
 #[derive(Default)]
 pub struct DBMS {
     data_directory: String,
     dataspaces: HashMap<String, DataSpace>,
+}
+
+pub enum DBMSError {
+    DataSpaceDoesNotExist,
+    TableDoesNotExist,
+    TableError(TableError),
 }
 
 impl DBMS {
@@ -65,6 +72,25 @@ impl DBMS {
     pub fn load_dataspaces(&mut self) {
         let info_file = self.load_info_file();
         let dataspaces_to_load = self.get_dataspaces_to_load(&info_file);
+    }
+
+    pub fn insert_into_table(
+        &mut self,
+        table_name: String,
+        dataspace_name: String,
+        fields: Vec<Vec<u8>>,
+    ) -> Result<(), DBMSError> {
+        let dataspace = self
+            .dataspaces
+            .get_mut(&dataspace_name)
+            .ok_or(DBMSError::DataSpaceDoesNotExist)?;
+        let table = dataspace
+            .tables
+            .get_mut(&table_name)
+            .ok_or(DBMSError::TableDoesNotExist)?;
+        table.insert(fields).map_err(|e| DBMSError::TableError(e))?;
+        // Write to datafile here
+        Ok(())
     }
 
     pub fn save_dataspaces() {}
