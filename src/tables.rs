@@ -5,7 +5,7 @@ use crate::rows::Row;
 pub struct Table {
     columns: Vec<FieldType>,
     rows: Vec<Row>,
-    current_pagefile: u128,
+    pagefile_size: u128,
 }
 
 #[derive(Debug)]
@@ -14,13 +14,25 @@ pub enum TableError {
 }
 
 impl Table {
-    pub fn new(columns: Vec<FieldType>) -> Table {
+    pub fn new(columns: Vec<FieldType>, pagefile_size: u128) -> Table {
         Table {
             columns,
             rows: vec![],
-            current_pagefile: 1,
+            pagefile_size,
         }
     }
+
+    pub fn parse_field_types(field_type_string: String) -> Vec<FieldType> {
+        let mut field_types = vec![];
+        for i in field_type_string.split(',') {
+            match i.trim().parse::<FieldType>() {
+                Ok(f) => field_types.push(f),
+                Err(_e) => panic!("Invalid Field Type {}", i),
+            }
+        }
+        field_types
+    }
+
     pub fn select_by_rowid(&self, id: String) -> Option<Row> {
         let row = self
             .rows

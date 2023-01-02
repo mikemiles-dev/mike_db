@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use log::{debug, error, info, warn};
 
 use crate::dataspace::DataSpace;
-use crate::tables::TableError;
+use crate::tables::{Table, TableError};
 
 pub type DataSpaceName = String;
 
@@ -17,10 +17,12 @@ pub struct DBMS {
     dataspaces: HashMap<DataSpaceName, DataSpace>,
 }
 
+#[derive(Debug)]
 pub enum DBMSError {
     DataSpaceDoesNotExist,
     TableDoesNotExist,
     TableError(TableError),
+    TableLoadError(String),
 }
 
 impl DBMS {
@@ -55,8 +57,7 @@ impl DBMS {
 
     fn table_file_path(&self, dataspace: String, table_name: String, table_page: u128) -> PathBuf {
         let mut path = self.data_path();
-        path.push(format!("{}.{}.{}", dataspace, table_name, table_page));
-        path.set_extension("table");
+        path.push(format!("{}.{}.{}.table", dataspace, table_name, table_page));
         path
     }
 
@@ -105,17 +106,47 @@ impl DBMS {
         }
     }
 
+    pub fn build_table_metadata(
+        &mut self,
+        dataspace: String,
+        table_name: String,
+    ) -> Result<Table, DBMSError> {
+        info!("  |->  Loading Metadata for Table: {}", table_name);
+        let table_metadata_path = self.table_file_path(dataspace, table_name, 0);
+        let table_metadata_file = self.load_file(table_metadata_path.clone());
+        let mut table_data = self.load_data(table_metadata_file);
+        let mut table_metadata = table_data.iter_mut();
+        // Get Page Count
+        let file_metadata = table_metadata_path.as_path();
+        let page_count = table_metadata
+            .next()
+            .ok_or_else(|| DBMSError::TableLoadError("Missing page count.".to_string()))?
+            .parse::<u128>()
+            .map_err(|_e| DBMSError::TableLoadError("Invalid page count.".to_string()))?;
+        // Get Field Types
+        let field_type_data = table_metadata.next().unwrap_or_else(|| {
+            panic!(
+                "Error: Datafile {:?} corrupted.  Missing field type data",
+                file_metadata
+            )
+        });
+        let field_types = Table::parse_field_types(field_type_data.to_string());
+        Ok(Table::new(field_types, page_count))
+    }
+
     pub fn load_dataspace(&mut self, dataspace: String) {
         info!("Loading Dataspace: {}...", dataspace);
         let path = self.dataspace_tables_path(dataspace.clone());
         let tables = self.load_data(self.load_file(path));
         for table in tables.iter() {
-            self.load_table(dataspace.clone(), table.clone());
+            let table1 = self.build_table_metadata(dataspace.clone(), table.clone());
+            println!("{:?}", table1.unwrap());
         }
     }
 
-    pub fn load_table(&mut self, dataspace: String, table_name: String) {
+    pub fn load_table(&mut self, dataspace: String, table_name: String, page_count: u128) {
         info!("Loading Table for {}: {}", dataspace, table_name);
+        let table_file_path = self.table_file_path(dataspace, table_name, 1);
     }
 
     pub fn insert_into_table(

@@ -1,14 +1,27 @@
-use std::{fmt, str};
+use std::{fmt, str, str::FromStr};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FieldType {
     String,
+    Integer,
 }
 
 #[derive(Debug, Clone)]
 pub struct Field {
     pub field_type: FieldType,
     pub data: Vec<u8>,
+}
+
+impl FromStr for FieldType {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<FieldType, Self::Err> {
+        match input {
+            "String" => Ok(FieldType::String),
+            "Int" => Ok(FieldType::Integer),
+            _ => Err(()),
+        }
+    }
 }
 
 impl Field {
