@@ -3,7 +3,8 @@ use crate::rows::Row;
 
 #[derive(Default, Debug)]
 pub struct Table {
-    columns: Vec<FieldType>,
+    pub column_types: Vec<FieldType>,
+    pub column_names: Vec<String>,
     pub rows: Vec<Row>,
     pub pagefile_size: u128,
     pub current_file_size_in_bytes: u64,
@@ -15,9 +16,14 @@ pub enum TableError {
 }
 
 impl Table {
-    pub fn new(columns: Vec<FieldType>, pagefile_size: u128) -> Table {
+    pub fn new(
+        column_types: Vec<FieldType>,
+        column_names: Vec<String>,
+        pagefile_size: u128,
+    ) -> Table {
         Table {
-            columns,
+            column_types,
+            column_names,
             rows: vec![],
             pagefile_size,
             current_file_size_in_bytes: 0,
@@ -49,14 +55,14 @@ impl Table {
 
     pub fn insert(&mut self, fields: Vec<Vec<u8>>) -> Result<Row, TableError> {
         // Verify Length
-        if fields.len() != self.columns.len() {
+        if fields.len() != self.column_types.len() {
             return Err(TableError::InsertionError(
                 "Row length does not match column length".to_string(),
             ));
         }
         // Add
         let mut row = vec![];
-        let mut columns = self.columns.iter();
+        let mut columns = self.column_types.iter();
         for field in fields.iter() {
             if let Some(column) = columns.next() {
                 let field = Field::new(column.clone(), field.to_vec());

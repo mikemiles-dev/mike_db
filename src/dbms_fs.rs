@@ -121,7 +121,14 @@ impl FileSystem for DBMS {
             .next()
             .ok_or_else(|| DBMSError::TableLoadError("Missing field type data".to_string()))?;
         let field_types = Table::parse_field_types(field_type_data.to_string());
-        Ok(Table::new(field_types, page_count))
+        // Get Field Names
+        let field_names = table_metadata
+            .next()
+            .ok_or_else(|| DBMSError::TableLoadError("Missing field name data".to_string()))?
+            .split(',')
+            .map(|f| f.to_string())
+            .collect::<Vec<String>>();
+        Ok(Table::new(field_types, field_names, page_count))
     }
 
     fn load_table_row(&mut self, row_data: Vec<String>, table: &mut Table) {
