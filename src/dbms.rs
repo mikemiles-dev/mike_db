@@ -75,16 +75,13 @@ impl DBMS {
         for dataspace_to_load in dataspaces_to_load.iter() {
             self.load_dataspace(dataspace_to_load.clone());
         }
-
     }
 
     pub fn load_dataspace(&mut self, dataspace: String) {
         info!("Loading dataspace: {}", dataspace);
     }
 
-    pub fn load_tables(&mut self, table_name: String) {
-
-    }
+    pub fn load_tables(&mut self, table_name: String) {}
 
     pub fn insert_into_table(
         &mut self,

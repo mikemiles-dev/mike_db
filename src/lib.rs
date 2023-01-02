@@ -4,8 +4,7 @@ pub mod fields;
 pub mod rows;
 pub mod tables;
 
-use chrono;
-use log::{SetLoggerError, LevelFilter, Record, Level, Metadata};
+use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 
 static LOGGER: SimpleLogger = SimpleLogger;
 struct SimpleLogger;
@@ -17,7 +16,12 @@ impl log::Log for SimpleLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            println!("{}: {} - {}", chrono::offset::Utc::now(), record.level(), record.args());
+            println!(
+                "{}: {} - {}",
+                chrono::offset::Utc::now(),
+                record.level(),
+                record.args()
+            );
         }
     }
 
@@ -25,6 +29,5 @@ impl log::Log for SimpleLogger {
 }
 
 pub fn init_log() -> Result<(), SetLoggerError> {
-    log::set_logger(&LOGGER)
-        .map(|()| log::set_max_level(LevelFilter::Info))
+    log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
 }
