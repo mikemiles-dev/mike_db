@@ -1,5 +1,6 @@
 pub mod dataspace;
 pub mod dbms;
+pub mod dbms_fs;
 pub mod fields;
 pub mod rows;
 pub mod tables;
