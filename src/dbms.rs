@@ -33,11 +33,30 @@ impl DBMS {
         dbms
     }
 
-    fn info_file_path(&self) -> PathBuf {
+    fn data_path(&self) -> PathBuf {
         let mut path = PathBuf::new();
         path.push(self.data_directory.clone());
+        path
+    }
+
+    fn info_file_path(&self) -> PathBuf {
+        let mut path = self.data_path();
         path.push("info");
         path.set_extension("mike_db");
+        path
+    }
+
+    fn dataspace_tables_path(&self, dataspace: String) -> PathBuf {
+        let mut path = self.data_path();
+        path.push(dataspace);
+        path.set_extension("tables");
+        path
+    }
+
+    fn table_file_path(&self, dataspace: String, table_name: String, table_page: u128) -> PathBuf {
+        let mut path = self.data_path();
+        path.push(format!("{}.{}.{}", dataspace, table_name, table_page));
+        path.set_extension("table");
         path
     }
 
@@ -65,23 +84,39 @@ impl DBMS {
         }
     }
 
-    fn get_dataspaces_to_load(&mut self) -> Vec<String> {
-        let reader = BufReader::new(self.info_file());
+    fn load_file(&self, file: PathBuf) -> File {
+        match File::open(file.clone()) {
+            Ok(file) => file,
+            Err(e) => {
+                panic!("Could not load file {}: {:?}", e, file.as_path().to_str());
+            }
+        }
+    }
+
+    fn load_data(&mut self, file: File) -> Vec<String> {
+        let reader = BufReader::new(file);
         reader.lines().flatten().collect()
     }
 
     pub fn load_dataspaces(&mut self) {
-        let dataspaces_to_load = self.get_dataspaces_to_load();
+        let dataspaces_to_load = self.load_data(self.info_file());
         for dataspace_to_load in dataspaces_to_load.iter() {
             self.load_dataspace(dataspace_to_load.clone());
         }
     }
 
     pub fn load_dataspace(&mut self, dataspace: String) {
-        info!("Loading dataspace: {}", dataspace);
+        info!("Loading Dataspace: {}...", dataspace);
+        let path = self.dataspace_tables_path(dataspace.clone());
+        let tables = self.load_data(self.load_file(path));
+        for table in tables.iter() {
+            self.load_table(dataspace.clone(), table.clone());
+        }
     }
 
-    pub fn load_tables(&mut self, table_name: String) {}
+    pub fn load_table(&mut self, dataspace: String, table_name: String) {
+        info!("Loading Table for {}: {}", dataspace, table_name);
+    }
 
     pub fn insert_into_table(
         &mut self,
