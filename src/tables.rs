@@ -5,6 +5,7 @@ use crate::rows::Row;
 pub struct Table {
     columns: Vec<FieldType>,
     rows: Vec<Row>,
+    current_pagefile: u128,
 }
 
 #[derive(Debug)]
@@ -17,6 +18,7 @@ impl Table {
         Table {
             columns,
             rows: vec![],
+            current_pagefile: 1,
         }
     }
     pub fn select_by_rowid(&self, id: String) -> Option<Row> {

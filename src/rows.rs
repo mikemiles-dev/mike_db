@@ -13,7 +13,7 @@ impl Row {
     pub fn new(fields: Vec<Field>) -> Row {
         Row {
             id: Uuid::new_v4().to_string(),
-            fields: fields,
+            fields,
         }
     }
 }

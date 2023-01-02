@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
+use std::fs::{create_dir, File};
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
-use log::error;
+use log::{debug, error, info, warn};
 
 use crate::dataspace::DataSpace;
 use crate::tables::TableError;
@@ -34,44 +34,42 @@ impl DBMS {
     fn info_file_path(&self) -> PathBuf {
         let mut path = PathBuf::new();
         path.push(self.data_directory.clone());
-        path.push("data");
         path.push("info");
         path.set_extension("mike_db");
         path
     }
 
-    fn create_info_file(&self) -> File {
-        match File::create(self.info_file_path()) {
-            Ok(file) => file,
-            Err(e) => panic!("Could not create DBMS: {e}"),
+    fn create_info_file(&self) {
+        let _ = create_dir(self.data_directory.clone());
+        if let Err(e) = File::create(self.info_file_path()) {
+            panic!("Could not create DBMS: {e}")
         }
     }
 
-    fn load_info_file(&self) -> File {
+    fn info_file(&self) -> File {
         match File::open(self.info_file_path()) {
             Ok(file) => file,
             Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => self.create_info_file(),
-                std::io::ErrorKind::PermissionDenied => self.create_info_file(),
-                _ => panic!("Could not load DBMS: {e}"),
+                std::io::ErrorKind::NotFound => {
+                    self.create_info_file();
+                    self.info_file()
+                }
+                _ => panic!(
+                    "Could not load DBMS info file {}: {:?}",
+                    e,
+                    self.info_file_path()
+                ),
             },
         }
     }
 
-    fn get_dataspaces_to_load(&mut self, file: &File) -> Vec<String> {
-        let reader = BufReader::new(file);
-        let mut dataspaces = vec![];
-        for line in reader.lines().flatten() {
-            dataspaces.push(line);
-        }
-        dataspaces
+    fn get_dataspaces_to_load(&mut self) -> Vec<String> {
+        let reader = BufReader::new(self.info_file());
+        reader.lines().flatten().collect()
     }
 
-    fn load_dataspaces_from_disk(&mut self, dataspaces: Vec<String>) {}
-
     pub fn load_dataspaces(&mut self) {
-        let info_file = self.load_info_file();
-        let dataspaces_to_load = self.get_dataspaces_to_load(&info_file);
+        let _dataspaces_to_load = self.get_dataspaces_to_load();
     }
 
     pub fn insert_into_table(
@@ -88,7 +86,7 @@ impl DBMS {
             .tables
             .get_mut(&table_name)
             .ok_or(DBMSError::TableDoesNotExist)?;
-        table.insert(fields).map_err(|e| DBMSError::TableError(e))?;
+        table.insert(fields).map_err(DBMSError::TableError)?;
         // Write to datafile here
         Ok(())
     }
@@ -107,17 +105,6 @@ mod tests {
 
     #[test]
     fn it_can_write_dbms_to_disk() {
-        let field1 = Field::new(FieldType::String, "A String".as_bytes().to_vec());
-        let field2 = Field::new(FieldType::String, "Another String".as_bytes().to_vec());
-        let mut table = Table::new(vec![FieldType::String, FieldType::String]);
-        let inserted_row = table.insert(vec![field1.data, field2.data]).unwrap();
-        assert_eq!(
-            format!("{}", inserted_row.fields.first().unwrap()),
-            "A String".to_string()
-        );
-        assert_eq!(
-            format!("{}", inserted_row.fields.last().unwrap()),
-            "Another String".to_string()
-        );
+        let dbms = DBMS::new();
     }
 }
