@@ -4,8 +4,8 @@ use crate::rows::Row;
 #[derive(Default, Debug)]
 pub struct Table {
     columns: Vec<FieldType>,
-    rows: Vec<Row>,
-    pagefile_size: u128,
+    pub rows: Vec<Row>,
+    pub pagefile_size: u128,
 }
 
 #[derive(Debug)]
