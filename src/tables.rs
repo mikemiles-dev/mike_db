@@ -6,6 +6,7 @@ pub struct Table {
     columns: Vec<FieldType>,
     pub rows: Vec<Row>,
     pub pagefile_size: u128,
+    pub current_file_size_in_bytes: u64,
 }
 
 #[derive(Debug)]
@@ -19,6 +20,7 @@ impl Table {
             columns,
             rows: vec![],
             pagefile_size,
+            current_file_size_in_bytes: 0,
         }
     }
 

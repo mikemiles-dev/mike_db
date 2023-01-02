@@ -148,6 +148,10 @@ impl FileSystem for DBMS {
             let table_file_path =
                 self.table_file_path(dataspace.clone(), table_name.clone(), count);
             let table_file = self.load_file(table_file_path);
+            table.current_file_size_in_bytes = table_file
+                .metadata()
+                .unwrap_or_else(|e| panic!("Could not get metadata! {}", e))
+                .len();
             let row_data = self.load_data(table_file);
             self.load_table_row(row_data, table);
         }
