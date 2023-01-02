@@ -9,10 +9,12 @@ use log::{debug, error, info, warn};
 use crate::dataspace::DataSpace;
 use crate::tables::TableError;
 
+pub type DataSpaceName = String;
+
 #[derive(Default)]
 pub struct DBMS {
     data_directory: String,
-    dataspaces: HashMap<String, DataSpace>,
+    dataspaces: HashMap<DataSpaceName, DataSpace>,
 }
 
 pub enum DBMSError {
@@ -69,7 +71,19 @@ impl DBMS {
     }
 
     pub fn load_dataspaces(&mut self) {
-        let _dataspaces_to_load = self.get_dataspaces_to_load();
+        let dataspaces_to_load = self.get_dataspaces_to_load();
+        for dataspace_to_load in dataspaces_to_load.iter() {
+            self.load_dataspace(dataspace_to_load.clone());
+        }
+
+    }
+
+    pub fn load_dataspace(&mut self, dataspace: String) {
+        info!("Loading dataspace: {}", dataspace);
+    }
+
+    pub fn load_tables(&mut self, table_name: String) {
+
     }
 
     pub fn insert_into_table(
