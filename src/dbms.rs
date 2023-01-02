@@ -12,7 +12,7 @@ use crate::tables::{Table, TableError};
 
 pub type DataSpaceName = String;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DBMS {
     data_directory: String,
     dataspaces: HashMap<DataSpaceName, DataSpace>,
@@ -103,7 +103,8 @@ impl DBMS {
     pub fn load_dataspaces(&mut self) {
         let dataspaces_to_load = self.load_data(self.info_file());
         for dataspace_to_load in dataspaces_to_load.iter() {
-            self.load_dataspace(dataspace_to_load.clone());
+            let dataspace = self.load_dataspace(dataspace_to_load.clone());
+            self.dataspaces.insert(dataspace_to_load.clone(), dataspace);
         }
     }
 
@@ -112,7 +113,7 @@ impl DBMS {
         dataspace: String,
         table_name: String,
     ) -> Result<Table, DBMSError> {
-        info!("  |->  Loading Table: {}", table_name);
+        info!(" . Loading Table: {}", table_name);
         let table_metadata_path = self.table_file_path(dataspace, table_name, 0);
         let table_metadata_file = self.load_file(table_metadata_path);
         let mut table_data = self.load_data(table_metadata_file);
@@ -133,7 +134,7 @@ impl DBMS {
 
     pub fn load_table_rows(&mut self, dataspace: String, table_name: String, table: &mut Table) {
         //let mut row = vec![];
-        info!("       Loading Rows for {}", table_name);
+        info!(" . Loading Rows for {}", table_name);
         for count in 1..table.pagefile_size + 1 {
             let table_file_path =
                 self.table_file_path(dataspace.clone(), table_name.clone(), count);
@@ -156,17 +157,20 @@ impl DBMS {
         }
     }
 
-    pub fn load_dataspace(&mut self, dataspace: String) {
-        info!("Loading Dataspace: {}...", dataspace);
-        let path = self.dataspace_tables_path(dataspace.clone());
+    pub fn load_dataspace(&mut self, dataspace_name: String) -> DataSpace {
+        info!("Loading Dataspace: {}...", dataspace_name);
+        let mut dataspace = DataSpace { tables: HashMap::new()};
+        let path = self.dataspace_tables_path(dataspace_name.clone());
         let tables = self.load_data(self.load_file(path));
         for table_name in tables.iter() {
-            let mut table = match self.load_table(dataspace.clone(), table_name.clone()) {
+            let mut table = match self.load_table(dataspace_name.clone(), table_name.clone()) {
                 Ok(table) => table,
                 Err(e) => panic!("{:?}", e),
             };
-            self.load_table_rows(dataspace.clone(), table_name.clone(), &mut table);
+            self.load_table_rows(dataspace_name.clone(), table_name.clone(), &mut table);
+            dataspace.tables.insert(table_name.clone(), table);
         }
+        dataspace
     }
 
     pub fn insert_into_table(

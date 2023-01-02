@@ -4,5 +4,7 @@ use mike_db::init_log;
 fn main() {
     init_log().unwrap();
 
-    let _dbms = DBMS::new();
+    let dbms = DBMS::new();
+
+    println!("{:?}", dbms);
 }
