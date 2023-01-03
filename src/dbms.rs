@@ -19,6 +19,8 @@ pub enum DBMSError {
     TableDoesNotExist,
     TableError(TableError),
     TableLoadError(String),
+    FileReadError(String),
+    CorruptedIndex,
 }
 
 impl DBMS {

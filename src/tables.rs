@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::fields::{Field, FieldType};
 use crate::rows::Row;
 
@@ -5,6 +7,7 @@ use crate::rows::Row;
 pub struct Table {
     pub column_types: Vec<FieldType>,
     pub column_names: Vec<String>,
+    pub indexes: HashMap<Vec<String>, Row>,
     pub rows: Vec<Row>,
     pub pagefile_size: u128,
     pub current_file_size_in_bytes: u64,
@@ -24,6 +27,7 @@ impl Table {
         Table {
             column_types,
             column_names,
+            indexes: HashMap::new(),
             rows: vec![],
             pagefile_size,
             current_file_size_in_bytes: 0,
